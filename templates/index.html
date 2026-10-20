@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ResuForge AI — ATS Checker & Executive Resume Builder</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#EEF2FF',
+              100: '#E0E7FF',
+              200: '#C7D2FE',
+              300: '#A5B4FC',
+              400: '#818CF8',
+              500: '#6366F1',
+              600: '#4F46E5',
+              700: '#4338CA',
+              800: '#3730A3',
+              900: '#312E81',
+            },
+            dark: {
+              bg: '#080C14',
+              surface: '#0F172A',
+              card: '#151F32',
+              border: '#1E293B',
+              borderLight: '#334155'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #080C14;
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.12) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(6, 182, 212, 0.08) 0px, transparent 50%),
+        radial-gradient(at 50% 50%, rgba(15, 23, 42, 0.5) 0px, transparent 100%);
+      background-attachment: fixed;
+    }
+    .glass-card {
+      background: rgba(21, 31, 50, 0.7);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+    }
+    .glass-card-hover {
+      transition: all 0.25s ease;
+    }
+    .glass-card-hover:hover {
+      border-color: rgba(99, 102, 241, 0.35);
+      box-shadow: 0 10px 30px -10px rgba(99, 102, 241, 0.15);
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #6366F1;
+    }
+    @keyframes pulse-subtle {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.85; transform: scale(1.02); }
+    }
+    .pulse-glow {
+      animation: pulse-subtle 3s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="text-slate-200 font-sans min-h-screen flex flex-col antialiased">
+
+  <!-- TOP NAVBAR -->
+  <header class="border-b border-slate-800/80 bg-dark-bg/80 backdrop-blur-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      
+      <!-- Brand Logo -->
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 via-indigo-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-brand-500/25">
+          <i data-lucide="sparkles" class="w-5 h-5 text-white"></i>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="text-xl font-bold tracking-tight text-white">Resu<span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-400 to-cyan-400">Forge</span></span>
+            <span class="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-brand-500/10 text-brand-300 border border-brand-500/20">AI Executive</span>
+          </div>
+          <p class="text-[11px] text-slate-400 hidden sm:block">ATS Score Algorithm &bull; Google X-Y-Z Rewriter &bull; PDF Export</p>
+        </div>
+      </div>
+
+      <!-- Right Header Actions -->
+      <div class="flex items-center space-x-3">
+        <!-- API Key Status Pill -->
+        <button id="apiKeyBtn" onclick="openKeyModal()" class="flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-700 bg-slate-900/60 hover:bg-slate-800 transition">
+          <span id="keyStatusDot" class="w-2 h-2 rounded-full {{ 'bg-emerald-400' if has_env_key else 'bg-amber-400' }}"></span>
+          <span id="keyStatusText" class="text-slate-300">{{ 'Gemini Connected (.env)' if has_env_key else 'Set Gemini Key' }}</span>
+          <i data-lucide="key" class="w-3.5 h-3.5 text-slate-400"></i>
+        </button>
+
+        <!-- Sample Data Loader Button -->
+        <button onclick="loadSampleData()" class="hidden md:flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white bg-slate-800/80 hover:bg-slate-700 border border-slate-700 transition">
+          <i data-lucide="wand-2" class="w-3.5 h-3.5 text-cyan-400"></i>
+          <span>Load Demo Sample</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-8">
+    
+    <!-- STEP 1: INPUT WORKBENCH (Upload & Job Post) -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      
+      <!-- LEFT: Resume Ingestion -->
+      <div class="lg:col-span-6 flex flex-col space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <span class="w-6 h-6 rounded-full bg-brand-500/20 text-brand-400 text-xs font-bold flex items-center justify-center border border-brand-500/30">1</span>
+            <h2 class="text-base font-semibold text-white">Upload Candidate Resume</h2>
+          </div>
+          <span id="fileBadge" class="text-xs text-slate-400 font-mono hidden">Ready</span>
+        </div>
+
+        <!-- Drag & Drop Zone -->
+        <div id="dropZone" class="glass-card rounded-2xl p-6 border-2 border-dashed border-slate-700/80 hover:border-brand-500/50 transition cursor-pointer text-center relative flex flex-col items-center justify-center min-h-[170px]">
+          <input type="file" id="fileInput" accept=".pdf,.docx,.doc,.txt" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full">
+          <div class="w-12 h-12 rounded-xl bg-brand-500/10 text-brand-400 flex items-center justify-center mb-3">
+            <i data-lucide="upload-cloud" class="w-6 h-6"></i>
+          </div>
+          <p class="text-sm font-medium text-slate-200">Drag & drop your resume file here</p>
+          <p class="text-xs text-slate-400 mt-1">Supports <span class="text-slate-300 font-medium">PDF, DOCX, TXT</span> (Max 10MB)</p>
+          <div id="uploadFeedback" class="mt-2 text-xs text-cyan-400 font-mono hidden"></div>
+        </div>
+
+        <!-- Extracted Text Area (Collapsible / Editable) -->
+        <div class="glass-card rounded-xl p-3 border border-slate-800">
+          <div class="flex items-center justify-between text-xs text-slate-400 mb-2 px-1">
+            <span class="font-medium flex items-center gap-1.5"><i data-lucide="file-text" class="w-3.5 h-3.5"></i> Extracted Resume Content</span>
+            <span id="charCount" class="font-mono text-slate-500">0 words</span>
+          </div>
+          <textarea id="resumeText" rows="6" placeholder="Extracted text will appear here. You can also paste or edit your resume text directly..." class="w-full bg-slate-900/60 border border-slate-800 rounded-lg p-3 text-xs font-mono text-slate-300 focus:outline-none focus:border-brand-500 custom-scrollbar resize-y"></textarea>
+        </div>
+      </div>
+
+      <!-- RIGHT: Job Description Input -->
+      <div class="lg:col-span-6 flex flex-col space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <span class="w-6 h-6 rounded-full bg-cyan-500/20 text-cyan-400 text-xs font-bold flex items-center justify-center border border-cyan-500/30">2</span>
+            <h2 class="text-base font-semibold text-white">Target Job Description</h2>
+          </div>
+          <span class="text-xs text-slate-400 font-mono">Role Benchmark</span>
+        </div>
+
+        <div class="glass-card rounded-2xl p-4 border border-slate-800 flex flex-col flex-1">
+          <p class="text-xs text-slate-400 mb-2">Paste the target job posting to benchmark skills, ATS keyword algorithms, and requirements:</p>
+          <textarea id="jobDescription" rows="12" placeholder="Paste the job description (responsibilities, required skills, qualification criteria)..." class="w-full flex-1 bg-slate-900/60 border border-slate-800 rounded-lg p-3.5 text-xs text-slate-300 focus:outline-none focus:border-cyan-500 custom-scrollbar resize-y"></textarea>
+        </div>
+
+        <!-- Run Analysis CTA Button -->
+        <button id="analyzeBtn" onclick="runAnalysis()" class="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-brand-600 via-indigo-600 to-cyan-500 hover:from-brand-500 hover:to-cyan-400 text-white font-semibold text-sm shadow-lg shadow-brand-600/30 transition transform active:scale-[0.99] flex items-center justify-center space-x-2 cursor-pointer">
+          <i data-lucide="cpu" class="w-4 h-4"></i>
+          <span>Run ATS Diagnostic & X-Y-Z Rewrite</span>
+        </button>
+      </div>
+
+    </section>
+
+    <!-- LOADING STATE -->
+    <div id="loadingState" class="hidden glass-card rounded-2xl p-12 text-center border border-brand-500/30">
+      <div class="inline-flex relative mb-4">
+        <div class="w-16 h-16 rounded-full border-4 border-slate-700 border-t-brand-500 animate-spin"></div>
+        <div class="absolute inset-0 flex items-center justify-center">
+          <i data-lucide="sparkles" class="w-6 h-6 text-brand-400 animate-pulse"></i>
+        </div>
+      </div>
+      <h3 class="text-lg font-bold text-white">Gemini ATS Algorithm in Progress</h3>
+      <p class="text-xs text-slate-400 mt-1 max-w-md mx-auto">Evaluating keyword density, parsing semantic alignment, computing hiring score, and forging Google X-Y-Z bullets...</p>
+    </div>
+
+    <!-- STEP 2 & 3: RESULTS SECTION (ATS SCORE + X-Y-Z REWRITES + PDF BUILDER) -->
+    <div id="resultsSection" class="hidden space-y-8">
+      
+      <!-- SECTION HEADER -->
+      <div class="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-slate-800 gap-4">
+        <div>
+          <h2 class="text-xl font-bold text-white flex items-center gap-2">
+            <span>ATS Diagnostic & Match Intelligence</span>
+            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          </h2>
+          <p class="text-xs text-slate-400">Audited against the job posting requirements & recruiter screening parameters</p>
+        </div>
+        <div class="flex items-center space-x-2">
+          <button onclick="scrollToEditor()" class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 border border-slate-700 transition flex items-center gap-1.5">
+            <i data-lucide="edit-3" class="w-3.5 h-3.5 text-brand-400"></i>
+            <span>Open Resume Builder</span>
+          </button>
+          <button onclick="downloadPdfNow()" class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold text-white shadow-md shadow-emerald-600/20 transition flex items-center gap-1.5">
+            <i data-lucide="download" class="w-3.5 h-3.5"></i>
+            <span>Export Clean ATS PDF</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- SCORECARD GRID -->
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+        
+        <!-- Score Radial Card -->
+        <div class="md:col-span-4 glass-card rounded-2xl p-6 flex flex-col items-center justify-center text-center border border-slate-800">
+          <span class="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-4">Overall ATS Match Score</span>
+          
+          <!-- Circle Score Indicator -->
+          <div class="relative w-36 h-36 flex items-center justify-center mb-3">
+            <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="42" stroke="currentColor" stroke-width="8" class="text-slate-800" fill="transparent"/>
+              <circle id="scoreRing" cx="50" cy="50" r="42" stroke="currentColor" stroke-width="8" class="text-brand-500 transition-all duration-1000 ease-out" fill="transparent" stroke-dasharray="264" stroke-dashoffset="264" stroke-linecap="round"/>
+            </svg>
+            <div class="absolute flex flex-col items-center">
+              <span id="scoreNumber" class="text-4xl font-extrabold text-white tracking-tight">0</span>
+              <span class="text-[10px] uppercase font-bold text-slate-400">/ 100</span>
+            </div>
+          </div>
+
+          <div id="verdictBadge" class="px-3 py-1 rounded-full text-xs font-bold bg-slate-800 text-slate-300 border border-slate-700">
+            Calculating...
+          </div>
+          <p id="summaryText" class="text-xs text-slate-400 mt-4 text-center leading-relaxed"></p>
+        </div>
+
+        <!-- Keyword & Gap Breakdown -->
+        <div class="md:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          
+          <!-- Matched Keywords -->
+          <div class="glass-card rounded-xl p-4 border border-slate-800/80">
+            <div class="flex items-center space-x-2 text-emerald-400 text-xs font-semibold mb-3">
+              <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+              <span>Matched Keywords (<span id="matchedCount">0</span>)</span>
+            </div>
+            <div id="matchedKeywordsContainer" class="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto custom-scrollbar"></div>
+          </div>
+
+          <!-- Missing Critical Keywords -->
+          <div class="glass-card rounded-xl p-4 border border-rose-900/30 bg-rose-950/10">
+            <div class="flex items-center space-x-2 text-rose-400 text-xs font-semibold mb-3">
+              <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+              <span>Missing Critical Keywords (<span id="missingCount">0</span>)</span>
+            </div>
+            <div id="missingKeywordsContainer" class="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto custom-scrollbar"></div>
+          </div>
+
+          <!-- Strengths -->
+          <div class="glass-card rounded-xl p-4 border border-slate-800/80">
+            <div class="flex items-center space-x-2 text-cyan-400 text-xs font-semibold mb-2">
+              <i data-lucide="thumbs-up" class="w-4 h-4"></i>
+              <span>Candidate Strengths</span>
+            </div>
+            <ul id="strengthsList" class="space-y-1.5 text-xs text-slate-300"></ul>
+          </div>
+
+          <!-- Actionable ATS Recommendations -->
+          <div class="glass-card rounded-xl p-4 border border-slate-800/80">
+            <div class="flex items-center space-x-2 text-amber-400 text-xs font-semibold mb-2">
+              <i data-lucide="lightbulb" class="w-4 h-4"></i>
+              <span>Formatting & Parser Tips</span>
+            </div>
+            <ul id="recommendationsList" class="space-y-1.5 text-xs text-slate-300"></ul>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- GOOGLE X-Y-Z BULLET REWRITER STUDIO -->
+      <section class="glass-card rounded-2xl p-6 border border-slate-800 space-y-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-4 border-b border-slate-800">
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-brand-500/20 text-brand-300 border border-brand-500/30">Google X-Y-Z Formula</span>
+              <h3 class="text-base font-bold text-white">Experience Bullet Rewriter Studio</h3>
+            </div>
+            <p class="text-xs text-slate-400 mt-1">
+              Formula: <span class="text-brand-300 font-mono">"Accomplished [X], as measured by [Y], by doing [Z]"</span>
+            </p>
+          </div>
+          <span class="text-xs text-slate-400 font-mono">High-Impact Quantification</span>
+        </div>
+
+        <!-- Custom Single Bullet Rewriter Bar -->
+        <div class="p-4 rounded-xl bg-slate-900/70 border border-slate-800 space-y-3">
+          <label class="block text-xs font-semibold text-slate-300">Test or rewrite any individual bullet point:</label>
+          <div class="flex flex-col sm:flex-row gap-2">
+            <input id="singleBulletInput" type="text" placeholder="e.g. Led backend development and improved API performance" class="flex-1 bg-slate-950 border border-slate-800 rounded-lg px-3.5 py-2 text-xs text-slate-200 focus:outline-none focus:border-brand-500 font-mono">
+            <button onclick="rewriteCustomBullet()" class="px-4 py-2 rounded-lg bg-brand-600 hover:bg-brand-500 text-xs font-semibold text-white whitespace-nowrap transition flex items-center justify-center gap-1.5">
+              <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+              <span>Generate 3 Variants</span>
+            </button>
+          </div>
+          <div id="customVariantsContainer" class="hidden space-y-2 mt-3 pt-3 border-t border-slate-800"></div>
+        </div>
+
+        <!-- Auto-Generated Rewritten Bullets List -->
+        <div id="xyzBulletsList" class="space-y-4">
+          <!-- Dynamically populated -->
+        </div>
+      </section>
+
+      <!-- STEP 4: INTERACTIVE RESUME BUILDER & PDF PREVIEW -->
+      <section id="resumeBuilderSection" class="glass-card rounded-2xl p-6 border border-slate-800 space-y-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+          <div>
+            <h3 class="text-base font-bold text-white flex items-center gap-2">
+              <i data-lucide="file-check" class="w-5 h-5 text-emerald-400"></i>
+              <span>Download-Ready ATS Resume Builder</span>
+            </h3>
+            <p class="text-xs text-slate-400">Review, tweak, and assemble your final ATS-safe resume before downloading the PDF.</p>
+          </div>
+
+          <div class="flex items-center space-x-3">
+            <select id="templateStyle" class="bg-slate-900 border border-slate-700 text-xs text-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-brand-500">
+              <option value="executive">Theme: Executive Navy (Recommended)</option>
+              <option value="modern">Theme: Modern Royal Blue</option>
+              <option value="minimal">Theme: Minimal Obsidian</option>
+            </select>
+
+            <button onclick="downloadPdfNow()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-semibold text-xs shadow-lg shadow-emerald-600/30 transition flex items-center gap-2">
+              <i data-lucide="download" class="w-4 h-4"></i>
+              <span>Download ATS-Proof PDF</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Structured Form -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Candidate Full Name</label>
+            <input id="formFullName" type="text" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-brand-500">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Email Address</label>
+            <input id="formEmail" type="email" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-brand-500">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Phone Number</label>
+            <input id="formPhone" type="text" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-brand-500">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Location (City, State / Remote)</label>
+            <input id="formLocation" type="text" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-brand-500">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">LinkedIn Profile</label>
+            <input id="formLinkedin" type="text" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-brand-500">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">GitHub / Portfolio URL</label>
+            <input id="formGithub" type="text" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-brand-500">
+          </div>
+        </div>
+
+        <!-- Summary -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Professional Summary</label>
+          <textarea id="formSummary" rows="3" class="w-full bg-slate-900 border border-slate-800 rounded-lg p-3 text-xs text-slate-200 focus:outline-none focus:border-brand-500 custom-scrollbar"></textarea>
+        </div>
+
+        <!-- Skills Area -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Core Skills (Categorized or Comma-Separated)</label>
+          <textarea id="formSkills" rows="3" placeholder="Languages: Python, JavaScript&#10;Frameworks: FastAPI, React, Docker&#10;Databases: PostgreSQL, Redis" class="w-full bg-slate-900 border border-slate-800 rounded-lg p-3 text-xs font-mono text-slate-200 focus:outline-none focus:border-brand-500 custom-scrollbar"></textarea>
+        </div>
+
+        <!-- Experience Bullets -->
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <label class="block text-xs font-semibold text-slate-400">Target Work Experience & X-Y-Z Bullets</label>
+            <span class="text-[11px] text-cyan-400 font-mono">Click 'Apply to Resume' above to inject rewritten bullets</span>
+          </div>
+          <textarea id="formExperience" rows="7" placeholder="Senior AI Engineer — TechCorp (2022 - Present)&#10;• Accomplished 42% latency reduction, as measured by sub-100ms p99 response times, by architecting an asynchronous FastAPI microservice.&#10;• Accomplished $85K cloud cost savings, as measured by monthly AWS billing, by introducing vector caching." class="w-full bg-slate-900 border border-slate-800 rounded-lg p-3 text-xs font-mono text-slate-200 focus:outline-none focus:border-brand-500 custom-scrollbar"></textarea>
+        </div>
+
+        <!-- Education & Certifications -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Education</label>
+            <textarea id="formEducation" rows="3" placeholder="B.S. in Computer Science — Stanford University (2018 - 2022)" class="w-full bg-slate-900 border border-slate-800 rounded-lg p-3 text-xs font-mono text-slate-200 focus:outline-none focus:border-brand-500 custom-scrollbar"></textarea>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Certifications & Honors</label>
+            <textarea id="formCertifications" rows="3" placeholder="AWS Certified Solutions Architect&#10;Google Professional Machine Learning Engineer" class="w-full bg-slate-900 border border-slate-800 rounded-lg p-3 text-xs font-mono text-slate-200 focus:outline-none focus:border-brand-500 custom-scrollbar"></textarea>
+          </div>
+        </div>
+
+      </section>
+
+    </div>
+
+  </main>
+
+  <!-- GEMINI API KEY MODAL -->
+  <div id="keyModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="glass-card rounded-2xl max-w-md w-full p-6 border border-slate-700 space-y-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+          <div class="w-8 h-8 rounded-lg bg-brand-500/20 text-brand-400 flex items-center justify-center">
+            <i data-lucide="key" class="w-4 h-4"></i>
+          </div>
+          <h3 class="text-base font-bold text-white">Gemini API Key</h3>
+        </div>
+        <button onclick="closeKeyModal()" class="text-slate-400 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <p class="text-xs text-slate-400 leading-relaxed">
+        Enter your Google Gemini API key. Your key is stored securely in your browser's <code class="text-brand-300">localStorage</code> or read from <code class="text-brand-300">.env</code> on the server.
+      </p>
+      <div>
+        <label class="block text-xs font-semibold text-slate-300 mb-1.5">API Key</label>
+        <input id="apiKeyInput" type="password" placeholder="AIzaSy..." class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-brand-500 font-mono">
+      </div>
+      <div class="flex items-center justify-between pt-2">
+        <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-xs text-cyan-400 hover:underline flex items-center gap-1">
+          <span>Get Free Key</span>
+          <i data-lucide="external-link" class="w-3 h-3"></i>
+        </a>
+        <div class="flex space-x-2">
+          <button onclick="closeKeyModal()" class="px-4 py-2 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition">Cancel</button>
+          <button onclick="saveApiKey()" class="px-4 py-2 rounded-lg bg-brand-600 hover:bg-brand-500 text-xs font-semibold text-white transition">Save Key</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 hidden px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 text-xs text-slate-200 shadow-2xl flex items-center space-x-2">
+    <i id="toastIcon" data-lucide="info" class="w-4 h-4 text-cyan-400"></i>
+    <span id="toastMessage">Notification</span>
+  </div>
+
+  <footer class="border-t border-slate-800/80 bg-dark-bg/40 py-6 text-center text-xs text-slate-500">
+    <p>ResuForge AI &bull; Executive ATS Intelligence & Google X-Y-Z Bullet Optimizer &bull; FastAPI + Gemini</p>
+  </footer>
+
+  <!-- APPLICATION SCRIPT -->
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
