@@ -10,6 +10,7 @@ pinned: false
 
 # ResuForge AI — ATS Checker & Executive Resume Builder 🚀
 
+[![Render](https://img.shields.io/badge/Render-Deploy-black?style=for-the-badge&logo=render)](https://render.com)
 [![Hugging Face Spaces](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Spaces-yellow?style=for-the-badge)](https://huggingface.co/spaces/Jaswanth1023/ResuForge-AI)
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/RedamJaswanth/ResuForge-AI)
 [![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com)
@@ -117,3 +118,20 @@ docker build -t resuforge-ai .
 # Run container locally
 docker run -p 7860:7860 -e GEMINI_API_KEY="your-api-key" resuforge-ai
 ```
+
+---
+
+## 🚀 1-Click Render Deployment (Free Web Service)
+
+Deploy instantly on [Render](https://render.com) using the included `render.yaml`:
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/RedamJaswanth/ResuForge-AI)
+
+Or manually in Render Dashboard:
+1. Go to [dashboard.render.com](https://dashboard.render.com) -> **New** -> **Web Service**.
+2. Connect your GitHub repository: `RedamJaswanth/ResuForge-AI`.
+3. Set **Runtime** to `Python 3`.
+4. Set **Build Command**: `pip install -r requirements.txt`.
+5. Set **Start Command**: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`.
+6. Add Environment Variable: `GEMINI_API_KEY` = your API key.
+7. Click **Create Web Service**.
