@@ -3,7 +3,7 @@ import os
 import logging
 from typing import Optional
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request
-from fastapi.responses import HTMLResponse, StreamingResponse, JSONResponse
+from fastapi.responses import HTMLResponse, StreamingResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
@@ -55,10 +55,19 @@ templates = Jinja2Templates(directory=TEMPLATES_DIR)
 @app.get("/", response_class=HTMLResponse)
 async def index_page(request: Request):
     has_env_key = bool(os.getenv("GEMINI_API_KEY", "").strip())
-    return templates.TemplateResponse("index.html", {
+    context = {
         "request": request,
         "has_env_key": has_env_key
-    })
+    }
+    return templates.TemplateResponse(
+        request=request,
+        name="index.html",
+        context=context
+    )
+
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    return Response(status_code=204)
 
 @app.get("/api/health")
 async def health_check():
