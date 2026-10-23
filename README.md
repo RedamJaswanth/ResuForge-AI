@@ -23,7 +23,7 @@ A full-stack application built with **FastAPI** and **Google Gemini** that parse
 ---
 
 ### 🌐 Live Demo
-👉 **[Open Live App on Hugging Face Spaces](https://huggingface.co/spaces/Jaswanth1023/ResuForge-AI)**
+👉 **[Open Live App on Render](https://resuforge-ai.onrender.com)**
 
 ---
 
