@@ -1,14 +1,34 @@
+---
+title: ResuForge AI ATS Resume Builder
+emoji: 🚀
+colorFrom: indigo
+colorTo: blue
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # ResuForge AI — ATS Checker & Executive Resume Builder 🚀
+
+[![Hugging Face Spaces](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Spaces-yellow?style=for-the-badge)](https://huggingface.co/spaces/Jaswanth1023/ResuForge-AI)
+[![GitHub](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/RedamJaswanth/ResuForge-AI)
+[![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com)
+[![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
 
 > **Engineered for ATS algorithms. Polished for executive recruiters.**
 
-A full-stack application built with **FastAPI** and **Google Gemini** that parses resumes (PDF/DOCX), evaluates ATS keyword & semantic match against target job postings, rewrites experience bullets using **Google's X-Y-Z formula**, and exports download-ready, ATS-compliant PDFs.
+A full-stack application built with **FastAPI** and **Google Gemini** that parses resumes (PDF/DOCX/TXT), evaluates ATS keyword & semantic match against target job postings, rewrites experience bullets using **Google's X-Y-Z formula**, and exports download-ready, ATS-compliant PDFs.
+
+---
+
+### 🌐 Live Demo
+👉 **[Open Live App on Hugging Face Spaces](https://huggingface.co/spaces/Jaswanth1023/ResuForge-AI)**
 
 ---
 
 ## ✨ Features
 
-- **Multi-Format Resume Ingestion**: Drag & drop support for `.pdf`, `.docx`, and `.txt` files with instant text extraction.
+- **Multi-Format Resume Ingestion**: Drag & drop support for `.pdf`, `.docx`, and `.txt` files with instant text extraction via `pdfplumber`, `pypdf`, and `python-docx`.
 - **ATS Match Scoring (0–100%)**:
   - Radial animated match score gauge.
   - Matched keywords checklist.
@@ -25,6 +45,21 @@ A full-stack application built with **FastAPI** and **Google Gemini** that parse
   - Multiple executive styling themes (Executive Navy, Modern Royal Blue, Minimal Obsidian).
 - **Gemini API Key Flexibility**:
   - Set via `.env` file (`GEMINI_API_KEY=...`) or directly via the UI in the browser.
+
+---
+
+## 🏗️ Architecture
+
+```mermaid
+flowchart TD
+    A[📄 User Uploads Resume & Job Description] --> B[⚡ FastAPI In-Memory Parser]
+    B --> C[🧠 Google Gemini Multi-Model Fallback Engine]
+    C --> D1[📊 ATS Score & Keyword Gap Analysis]
+    C --> D2[✍️ Google X-Y-Z Bullet Rewriter]
+    C --> D3[📋 Structured Resume Data]
+    D3 --> E[📑 ReportLab Vector ATS PDF Generator]
+    D1 & D2 & E --> F[🖥️ Executive Glassmorphic UI]
+```
 
 ---
 
@@ -68,3 +103,17 @@ Open your browser at:
 
 Interactive API Docs:
 👉 **`http://127.0.0.1:8000/docs`**
+
+---
+
+## 🐳 Docker & Hugging Face Spaces Deployment
+
+The repository includes a production-ready `Dockerfile` optimized for Hugging Face Spaces (UID 1000, port 7860):
+
+```bash
+# Build the Docker image
+docker build -t resuforge-ai .
+
+# Run container locally
+docker run -p 7860:7860 -e GEMINI_API_KEY="your-api-key" resuforge-ai
+```
